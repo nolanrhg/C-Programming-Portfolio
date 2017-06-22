@@ -11,17 +11,22 @@ static void button_pin_init(void);
 typedef enum
 {
 	time = 0,
-	date = 1
+	day = 1,
+	month = 2,
+	year = 3
 } Display_TypeDef;
 
+static volatile uint8_t btn_presses = 0;
 static volatile Display_TypeDef display_mode = time;
 char days[7][4] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};	
 
 static volatile DS3231_TypeDef rtc;
 static volatile Date_TypeDef d;
+static Alarm_TypeDef alrm;
 
 void main(void)
 {
+	char buff[6];
 	sysclk_init();	
 	button_pin_init();
 	LCD_Initialization();
@@ -31,20 +36,39 @@ void main(void)
 	dma_i2c_rx_init();
 	dma_i2c_tx_init();
 	
-	d->second = (uint8_t) 0U;
-	d->minute = (uint8_t) 50U;
-	d->hour = (uint8_t) 12U;
-	d->day = DS3231_DAYR_THUR;
-	d->date = (uint8_t) 22U;
-	d->month = DS3231_MONTHR_JUN;
-	d->year = (uint16_t) 2017U;
+	d.second = (uint8_t) 0U;
+	d.minute = (uint8_t) 53U;
+	d.hour = (uint8_t) 16U;
+	d.day = DS3231_DAYR_THUR;
+	d.date = (uint8_t) 22U;
+	d.month = DS3231_MONTHR_JUN;
+	d.year = (uint16_t) 2017U;
 	
-//	RTC_set_date(d, rtc);
+	alrm.second = (uint8_t) 0U;
+	alrm.minute = (uint8_t) 0U;
+	alrm.hour = (uint8_t) 12U;
+	alrm.day = DS3231_DAYR_FRI;
+	alrm.date = (uint8_t) 13U;
+	alrm.alrm_num = ALARM1;
+	alrm.rate = PERMIN;
+	
+//	RTC_set_date(&d, &rtc);
+	
+	RTC_clear_interrupt_flag(&rtc, ALARM1);
 	
 	exti_pin_init();
 	
-	RTC_enable_interrupts(DS3231_ALARM1, alarm_rate);	
-		
+	RTC_enable_interrupts(&rtc, &alrm);	
+
+	RTC_read_date(&d, &rtc);	
+	
+	LCD_Clear();
+	
+	sprintf(buff, "%d:%d", d.hour, d.minute);	
+
+	LCD_DisplayString((uint8_t *) buff);
+
+			
 	while(1);
 }
 
@@ -146,15 +170,40 @@ static void exti_pin_init(void)
   */
 void EXTI0_IRQHandler(void)
 {
-        EXTI->PR1 |= EXTI_PR1_PIF0;
+	char buff[6];
 
+        EXTI->PR1 |= EXTI_PR1_PIF0;
+	
+	btn_presses = (btn_presses + 1) % 4;
+	
         // Wait for the button to be released   
         while (GPIOA->IDR & GPIO_IDR_IDR_0);
 	
-	if (display_mode == time)
-		display_mode = date;
-	else
-		display_mode = time;
+	LCD_Clear();
+		
+	switch (btn_presses) {
+	case 0:
+		if (d.minute < 10)
+			sprintf(buff, "%d:0%d", d.hour, d.minute);
+		else
+			sprintf(buff, "%d:%d", d.hour, d.minute);
+		break;
+	case 1:	
+		sprintf(buff, "%s %d", *(days + (d.day - 1)), d.date);
+		break;
+	case 2:
+		sprintf(buff, "M: %d", d.month);	
+		break;
+	case 3:
+		sprintf(buff, "%d", d.year);
+		break;
+	default:
+		sprintf(buff, "ERROR");
+		break;
+	
+	}	
+	
+        LCD_DisplayString((uint8_t *) buff);
 }
 
 /**
@@ -168,15 +217,13 @@ void EXTI1_IRQHandler(void)
 	char buff[6];
 
         EXTI->PR1 |= EXTI_PR1_PIF1;
+	RTC_clear_interrupt_flag(&rtc, ALARM1);
 
-	RTC_read_date(d, rtc);	
+	RTC_read_date(&d, &rtc);	
 	
 	LCD_Clear();
 	
-	if (display_mode == time)
-		sprintf(buff, "%d:%d", d->hour, d->minute);	
-	else
-		sprintf(buff, "%d", d->date);
+	sprintf(buff, "%d:%d", d.hour, d.minute);	
 
 	LCD_DisplayString((uint8_t *) buff);
 }

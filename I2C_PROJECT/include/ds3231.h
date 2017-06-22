@@ -14,57 +14,7 @@
 #ifndef DS3231_H
 #define DS3231_H
 
-/***********************************************************************************\
- *                                                                                 *
- *                              DS3231 STRUCTS                                     *
- *                                                                                 *
-\***********************************************************************************/
-
-/* RTC Struct ---------------------------------------------------------------------*/
-typedef struct
-{
-	uint8_t SECR;		/*!< DS3231 Seconds Register */
-	uint8_t MINR;		/*!< DS3231 Minutes Register */
-	uint8_t HOURR;		/*!< DS3231 Hours Register */
-	uint8_t DAYR;		/*!< DS3231 Day Register */
-	uint8_t DATER;		/*!< DS3231 Date Register */
-	uint8_t MONTHR;		/*!< DS3231 Month/Century Register */
-	uint8_t YEARR;		/*!< DS3231 Year Register */
-	uint8_t ALRM1SECR;	/*!< DS3231 Alarm 1 Seconds Register */
-	uint8_t ALRM1MINR;	/*!< DS3231 Alarm 1 Minutes Register */
-	uint8_t ALRM1HOURR;	/*!< DS3231 Alarm 1 Hours Register */
-	uint8_t ALRM1DAYR;	/*!< DS3231 Alarm 1 Day Register */
-	uint8_t ALRM2MINR;	/*!< DS3231 Alarm 2 Minutes Register */
-	uint8_t ALRM2HOURR;	/*!< DS3231 Alarm 2 Hours Register */
-	uint8_t ALRM2DAYR;	/*!< DS3231 Alarm 2 Day Register */
-	uint8_t CTLR;		/*!< DS3231 Control Register */
-	uint8_t SR;		/*!< DS3231 Status Register */
-	uint8_t AGEOFFR;	/*!< DS3231 Aging Offset Register */
-	uint8_t TEMPMSBR;	/*!< DS3231 MSB of Temperature Register */
-	uint8_t TEMPLSBR;	/*!< DS3231 LSB of Temperature Register */
-} DS3231_TypeDef;
-
-/* Date Struct -------------------------------------------------------------------*/
-typedef struct
-{
-	uint8_t second;
-	uint8_t minute;
-	uint8_t hour;
-	uint8_t day;
-	uint8_t date;
-	uint8_t month;
-	uint16_t year;
-} Date_TypeDef;
-
-/* Alarm Struct ------------------------------------------------------------------*/
-typedef struct
-{
-	uint8_t second;
-	uint8_t minute;
-	uint8_t hour;
-	uint8_t day;
-	uint8_t date;
-} Alarm_TypeDef;
+#define __IO			volatile
 
 /***********************************************************************************\
  *                                                                                 *
@@ -86,6 +36,60 @@ typedef enum
 	ALARM1 = 0,
 	ALARM2 = 1
 } DS3231_ALARM_TypeDef;
+
+/***********************************************************************************\
+ *                                                                                 *
+ *                              DS3231 STRUCTS                                     *
+ *                                                                                 *
+\***********************************************************************************/
+
+/* RTC Struct ---------------------------------------------------------------------*/
+typedef struct
+{
+	__IO uint8_t SECR;		/*!< DS3231 Seconds Register */
+	__IO uint8_t MINR;		/*!< DS3231 Minutes Register */
+	__IO uint8_t HOURR;		/*!< DS3231 Hours Register */
+	__IO uint8_t DAYR;		/*!< DS3231 Day Register */
+	__IO uint8_t DATER;		/*!< DS3231 Date Register */
+	__IO uint8_t MONTHR;		/*!< DS3231 Month/Century Register */
+	__IO uint8_t YEARR;		/*!< DS3231 Year Register */
+	__IO uint8_t ALRM1SECR;		/*!< DS3231 Alarm 1 Seconds Register */
+	__IO uint8_t ALRM1MINR;		/*!< DS3231 Alarm 1 Minutes Register */
+	__IO uint8_t ALRM1HOURR;	/*!< DS3231 Alarm 1 Hours Register */
+	__IO uint8_t ALRM1DAYR;		/*!< DS3231 Alarm 1 Day Register */
+	__IO uint8_t ALRM2MINR;		/*!< DS3231 Alarm 2 Minutes Register */
+	__IO uint8_t ALRM2HOURR;	/*!< DS3231 Alarm 2 Hours Register */
+	__IO uint8_t ALRM2DAYR;		/*!< DS3231 Alarm 2 Day Register */
+	__IO uint8_t CTLR;		/*!< DS3231 Control Register */
+	__IO uint8_t SR;		/*!< DS3231 Status Register */
+	__IO uint8_t AGEOFFR;		/*!< DS3231 Aging Offset Register */
+	__IO uint8_t TEMPMSBR;		/*!< DS3231 MSB of Temperature Register */
+	__IO uint8_t TEMPLSBR;		/*!< DS3231 LSB of Temperature Register */
+} DS3231_TypeDef;
+
+/* Date Struct -------------------------------------------------------------------*/
+typedef struct
+{
+	__IO uint8_t second;
+	__IO uint8_t minute;
+	__IO uint8_t hour;
+	__IO uint8_t day;
+	__IO uint8_t date;
+	__IO uint8_t month;
+	__IO uint16_t year;
+} Date_TypeDef;
+
+/* Alarm Struct ------------------------------------------------------------------*/
+typedef struct
+{
+	uint8_t second;
+	uint8_t minute;
+	uint8_t hour;
+	uint8_t day;
+	uint8_t date;
+	DS3231_ALARM_TypeDef alrm_num;
+	ALARM_RATE_TypeDef rate;
+} Alarm_TypeDef;
 
 /***********************************************************************************\
  *                                                                                 *
@@ -140,7 +144,7 @@ typedef enum
 /* HOURR --------------------------------------------------------------------------*/
 
 // Bit 7 is reserved:  must be 0.
-#define DS3231_HOURR_MILTIME		((uint8_t) 0x40)	/*!< Time format is military time */
+#define DS3231_HOURR_NONMILTIME		((uint8_t) 0x40)	/*!< Time format is not military time */
 #define DS3231_HOURR_PM			((uint8_t) 0x20)	/*!< Current time is PM */
 #define DS3231_HOURR_20HR		((uint8_t) 0x20)	/*!< Current hour is between 20 and 23 */
 // Bit 4 is the ten's digit of the current hour.
@@ -199,8 +203,9 @@ typedef enum
 /* ALRM1HOURR -----------------------------------------------------------------------*/
 
 #define DS3231_ALRM1HOURR_MASK3		((uint8_t) 0x80)
-#define DS3231_ALRM1HOURR_MILTIME	((uint8_t) 0x40)
+#define DS3231_ALRM1HOURR_NONMILTIME	((uint8_t) 0x40)
 #define DS3231_ALRM1HOURR_PM		((uint8_t) 0x20)
+#define DS3231_ALRM1HOURR_20HR		((uint8_t) 0x20)
 // Bit 4 is the ten's digit of the alarm1 hour.
 // Bits 3 - 0 are the one's digit of the alarm1 hour.
 
@@ -220,7 +225,7 @@ typedef enum
 /* ALRM2HOURR -------------------------------------------------------------------------*/
 
 #define DS3231_ALRM2HOURR_MASK3		((uint8_t) 0x80)
-#define DS3231_ALRM2HOURR_MILTIME	((uint8_t) 0x40)
+#define DS3231_ALRM2HOURR_NONMILTIME	((uint8_t) 0x40)
 #define DS3231_ALRM2HOURR_PM		((uint8_t) 0x20)
 // Bit 4 is the ten's digit of the alarm2 hour.
 // Bits 3 - 0 are the one's digit of the alarm2 hour.
@@ -251,8 +256,8 @@ typedef enum
 // Bits 6 - 4 are reserved:  must be 0.
 #define DS3231_SR_32KEN			((uint8_t) 0x80)	/*!< Enables 32.768 kHz square wave output */
 // Bit 2 is the busy flag.
-// Bit 1 is the alarm2 flag.
-// Bit 0 is the alarm1 flag.
+#define DS3231_SR_A2F			((uint8_t) 0x02)
+#define DS3231_SR_A1F			((uint8_t) 0x01)
 
 /* AGEOFFR -----------------------------------------------------------------------------*/
 
@@ -321,7 +326,17 @@ void RTC_read_alarm(Alarm_TypeDef *restrict alarm);
   * @param alrm_rate :
   * @retval None
   */
-void RTC_enable_interrupts(uint8_t arlm_num, ALARM_RATE_TypeDef alrm_rate);
+void RTC_enable_interrupts(DS3231_TypeDef *restrict rtc, Alarm_TypeDef *restrict alarm);
+
+/**
+  * @brief
+  * 
+  *
+  * @param alrm_num :
+  * @param alrm_rate :
+  * @retval None
+  */
+void RTC_clear_interrupt_flag(DS3231_TypeDef *restrict rtc, DS3231_ALARM_TypeDef alrm);
 
 /**
   * @brief

@@ -46,7 +46,7 @@ void RTC_set_date(Date_TypeDef *restrict d, DS3231_TypeDef *restrict rtc)
 	tens_digit = get_digit(2, d->hour);
 	ones_digit = get_digit(1, d->hour);
 
-	rtc->HOURR |= DS3231_HOURR_MILTIME;	// Use military time
+	rtc->HOURR &= ~DS3231_HOURR_NONMILTIME;	// Use military time
 
 	switch (tens_digit) {
 	case 0:
@@ -131,6 +131,104 @@ void RTC_read_date(Date_TypeDef *restrict d, DS3231_TypeDef *restrict rtc)
 		d->year = 1900 + rtc_reg_bcd_to_int(storage[6]);
 
 	free(storage);
+}
+
+void RTC_enable_interrupts(DS3231_TypeDef *restrict rtc, Alarm_TypeDef *restrict alarm)
+{
+	uint8_t tens_digit;
+	uint8_t ones_digit;
+	uint8_t i2c_payload[5];
+	
+	RTC_struct_reset(rtc);
+		
+	if (alarm->alrm_num == ALARM1) {
+		i2c_payload[0] = DS3231_ALRM1SECR_PTR;
+
+		switch (alarm->rate) {
+
+		case PERSEC:
+			break;
+
+		case PERMIN:
+			
+			/* Set alarm masks */
+			rtc->ALRM1SECR &= ~DS3231_ALRM1SECR_MASK1;
+			rtc->ALRM1MINR |= DS3231_ALRM1MINR_MASK2;
+			rtc->ALRM1HOURR |= DS3231_ALRM1HOURR_MASK3;
+			rtc->ALRM1DAYR |= DS3231_ALRM1DAYR_MASK4;
+			
+			/* Set alarm second */
+			tens_digit = get_digit(2, alarm->second);	
+			ones_digit = get_digit(1, alarm->second);
+			rtc->ALRM1SECR |= (0x7F) & ((tens_digit << 4) | (ones_digit << 0));
+			i2c_payload[1] = rtc->ALRM1SECR;
+			
+			/* Set alarm minute */
+			tens_digit = get_digit(2, alarm->minute);
+			ones_digit = get_digit(1, alarm->minute);
+			rtc->ALRM1MINR |= (0x7F) & ((tens_digit << 4) | (ones_digit << 0));
+			i2c_payload[2] = rtc->ALRM1MINR;
+
+			/* Set alarm hour */
+			tens_digit = get_digit(2, alarm->hour);
+			ones_digit = get_digit(1, alarm->hour);
+
+			if (alarm->hour >= 20)
+				rtc->ALRM1HOURR |= DS3231_ALRM1HOURR_20HR;
+
+			rtc->ALRM1HOURR |= (0x1F) & ((tens_digit << 4) | (ones_digit << 0));
+			i2c_payload[3] = rtc->ALRM1HOURR;
+				
+			/* Set alarm day */	
+			rtc->ALRM1DAYR |= DS3231_ALRM1DAYR_DAY;
+			rtc->ALRM1DAYR |= (0x0F) & (alarm->day);
+			i2c_payload[4] = rtc->ALRM1DAYR;
+			
+			break;
+
+		default:
+			break;		
+
+		}	
+		
+		rtc->CTLR |= DS3231_CTLR_INTEN;
+		rtc->CTLR |= DS3231_CTLR_A1IE;
+		
+	} else {
+		i2c_payload[0] = DS3231_ALRM2MINR_PTR;	
+
+		switch (alarm->rate) {
+		case PERSEC:
+			break;
+		case PERMIN:
+			break;
+		default:
+			break;		
+		}
+	}
+
+	i2c1_transmit(5, DS3231_I2C_ADDR, i2c_payload);
+		
+	i2c_payload[0] = DS3231_CTLR_PTR;
+	i2c_payload[1] = rtc->CTLR;
+	
+	i2c1_transmit(2, DS3231_I2C_ADDR, i2c_payload);
+}
+
+void RTC_clear_interrupt_flag(DS3231_TypeDef *restrict rtc, DS3231_ALARM_TypeDef alrm)
+{
+	uint8_t payload[2];
+	
+	payload[0] = DS3231_SR_PTR;
+	
+	if (alrm == ALARM1)	
+		rtc->SR &= ~DS3231_SR_A1F;
+	else
+		rtc->SR &= ~DS3231_SR_A2F;
+	
+	payload[1] = rtc->SR;
+	
+	i2c1_transmit(2, DS3231_I2C_ADDR, payload);
 }
 
 void RTC_struct_reset(DS3231_TypeDef *rtc)
