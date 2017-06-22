@@ -19,6 +19,7 @@ typedef enum
 static volatile uint8_t btn_presses = 0;
 static volatile Display_TypeDef display_mode = time;
 char days[7][4] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};	
+char months[12][4] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
 
 static volatile DS3231_TypeDef rtc;
 static volatile Date_TypeDef d;
@@ -37,8 +38,8 @@ void main(void)
 	dma_i2c_tx_init();
 	
 	d.second = (uint8_t) 0U;
-	d.minute = (uint8_t) 53U;
-	d.hour = (uint8_t) 16U;
+	d.minute = (uint8_t) 22U;
+	d.hour = (uint8_t) 20U;
 	d.day = DS3231_DAYR_THUR;
 	d.date = (uint8_t) 22U;
 	d.month = DS3231_MONTHR_JUN;
@@ -52,7 +53,7 @@ void main(void)
 	alrm.alrm_num = ALARM1;
 	alrm.rate = PERMIN;
 	
-//	RTC_set_date(&d, &rtc);
+	//RTC_set_date(&d, &rtc);
 	
 	RTC_clear_interrupt_flag(&rtc, ALARM1);
 	
@@ -64,7 +65,10 @@ void main(void)
 	
 	LCD_Clear();
 	
-	sprintf(buff, "%d:%d", d.hour, d.minute);	
+	if (d.minute < 10)	
+		sprintf(buff, "%d:0%d", d.hour, d.minute);	
+	else 
+		sprintf(buff, "%d:%d", d.hour, d.minute);
 
 	LCD_DisplayString((uint8_t *) buff);
 
@@ -183,16 +187,24 @@ void EXTI0_IRQHandler(void)
 		
 	switch (btn_presses) {
 	case 0:
-		if (d.minute < 10)
-			sprintf(buff, "%d:0%d", d.hour, d.minute);
-		else
-			sprintf(buff, "%d:%d", d.hour, d.minute);
+		if (d.minute < 10) {
+			if (d.hour < 10)
+				sprintf(buff, "0%d:0%d", d.hour, d.minute);
+			else
+				sprintf(buff, "%d:0%d", d.hour, d.minute);
+		} else {
+			if (d.hour < 10)
+				sprintf(buff, "0%d:%d", d.hour, d.minute);
+			else
+				sprintf(buff, "%d:%d", d.hour, d.minute);
+		}
+
 		break;
 	case 1:	
-		sprintf(buff, "%s %d", *(days + (d.day - 1)), d.date);
+		sprintf(buff, "%s", *(days + (d.day - 1)));
 		break;
 	case 2:
-		sprintf(buff, "M: %d", d.month);	
+		sprintf(buff, "%d %d", *(months + (d.month - 1)), d.date);	
 		break;
 	case 3:
 		sprintf(buff, "%d", d.year);
@@ -223,7 +235,10 @@ void EXTI1_IRQHandler(void)
 	
 	LCD_Clear();
 	
-	sprintf(buff, "%d:%d", d.hour, d.minute);	
+	if (d.minute < 10)	
+		sprintf(buff, "%d:0%d", d.hour, d.minute);	
+	else 
+		sprintf(buff, "%d:%d", d.hour, d.minute);
 
 	LCD_DisplayString((uint8_t *) buff);
 }
