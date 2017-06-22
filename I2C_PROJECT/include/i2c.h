@@ -18,6 +18,13 @@
 
 /***********************************************************************************
  *                                                                                 *
+ *                              I2C CONSTANTS                                      *
+ *                                                                                 *
+ ***********************************************************************************/
+#define I2C_CLK_FREQ_DIV_2	((uint32_t) 1U << 28)
+
+/***********************************************************************************
+ *                                                                                 *
  *                              I2C FUNCTIONS                                      *
  *                                                                                 *
  ***********************************************************************************/
@@ -26,9 +33,12 @@
 void i2c1_init(void);
 
 /* configure pins used for i2c1 */
-void i2c1_pins_init(void);
+static void i2c1_pins_init(void);
 
 /* transmit data on the i2c1 bus */
 void i2c1_transmit(uint8_t nbytes, uint8_t slvaddr, uint8_t *payload);
+
+/* read data from a slave on the i2c1 bus */
+void i2c1_read(uint8_t nbytes, uint8_t slvaddr, uint8_t *reg, uint8_t *storage_ptr);
 
 #endif

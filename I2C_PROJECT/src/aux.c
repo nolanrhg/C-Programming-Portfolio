@@ -1,9 +1,9 @@
  /**********************************************************************************\
-  * @file    I2C_PROJECT/include/ht16k33.h                                         *
+  * @file    I2C_PROJECT/include/aux.c                                             *
   * @author  Enki                                                                  *
   * @version V1.0                                                                  *
   * @date    21-June-2017                                                          *
-  * @brief   HT16K33 Application Interface.                                        *
+  * @brief   Auxiliary functions                                                   *
   *                                                                                *
   **********************************************************************************
   * @attention                                                                     *
@@ -11,16 +11,26 @@
   * <h2><center>&copy; COPYRIGHT(c) 2017 Enki  </center></h2>                      *
   *                                                                                *
  \**********************************************************************************/
-#ifndef HT16K33_H
-#define HT16K33_H
+#include <math.h>
+#include "../include/aux.h"
 
 /***********************************************************************************\
  *                                                                                 *
- *                              HT16K33 STRUCTS                                    *
+ *                              AUX FUNCTIONS                                      *
  *                                                                                 *
 \***********************************************************************************/
-typedef struct
-{
-	uint8_t
-} HT16K33_TypeDef;
 
+uint8_t get_digit(uint8_t digit, uint32_t num)
+{
+	uint8_t num_digits = floor(log10(num) + 1);
+
+	if (digit > num_digits)
+		return 0;
+	else
+		return (uint8_t)(((uint32_t)(num / (pow(10, digit - 1)))) % 10);
+}
+
+uint8_t rtc_reg_bcd_to_int(uint8_t num)
+{
+	return (((num & 0xF0) >> 4) * 10) + (num & 0x0F);
+}

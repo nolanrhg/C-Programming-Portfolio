@@ -1,6 +1,6 @@
 TARGET = clock
 
-OBJS = main.o i2c.o ds3231.o ht16k33.o 
+OBJS = main.o i2c.o ds3231.o ht16k33.o dma.o aux.o lcd.o
 
 INSTALLDIR = /usr/local/stmdev/
 
@@ -15,7 +15,7 @@ OBJCOPY=arm-none-eabi-objcopy
 INCDIRS = -I$(INSTALLDIR)/include -I.
 LIBDIRS = -L$(INSTALLDIR)/lib
 
-LIBS=  -lece486_$(ARCH) -l$(ARCH) -lcmsis_dsp_$(ARCH)  
+LIBS=  -lece486_$(ARCH) -l$(ARCH) -lcmsis_dsp_$(ARCH) -lm
 
 LINKSCRIPT = $(INSTALLDIR)/lib/$(ARCH)_FLASH.ld
 

@@ -1,5 +1,4 @@
-/**
-  **********************************************************************************
+ /**********************************************************************************\
   * @file    I2C_PROJECT/include/ds3231.h                                          *
   * @author  Enki                                                                  *
   * @version V1.0                                                                  *
@@ -11,16 +10,17 @@
   *                                                                                *
   * <h2><center>&copy; COPYRIGHT(c) 2017 Enki  </center></h2>     	           *
   *                                                                                *
-  **********************************************************************************
-  */
+ \**********************************************************************************/
 #ifndef DS3231_H
 #define DS3231_H
 
-/***********************************************************************************
+/***********************************************************************************\
  *                                                                                 *
- *                              RTC STRUCT                                         *
+ *                              DS3231 STRUCTS                                     *
  *                                                                                 *
- ***********************************************************************************/
+\***********************************************************************************/
+
+/* RTC Struct ---------------------------------------------------------------------*/
 typedef struct
 {
 	uint8_t SECR;		/*!< DS3231 Seconds Register */
@@ -42,20 +42,63 @@ typedef struct
 	uint8_t AGEOFFR;	/*!< DS3231 Aging Offset Register */
 	uint8_t TEMPMSBR;	/*!< DS3231 MSB of Temperature Register */
 	uint8_t TEMPLSBR;	/*!< DS3231 LSB of Temperature Register */
-} RTC_TypeDef;
+} DS3231_TypeDef;
 
-/***********************************************************************************
+/* Date Struct -------------------------------------------------------------------*/
+typedef struct
+{
+	uint8_t second;
+	uint8_t minute;
+	uint8_t hour;
+	uint8_t day;
+	uint8_t date;
+	uint8_t month;
+	uint16_t year;
+} Date_TypeDef;
+
+/* Alarm Struct ------------------------------------------------------------------*/
+typedef struct
+{
+	uint8_t second;
+	uint8_t minute;
+	uint8_t hour;
+	uint8_t day;
+	uint8_t date;
+} Alarm_TypeDef;
+
+/***********************************************************************************\
+ *                                                                                 *
+ *                              DS3231 ENUMS                                       *
+ *                                                                                 *
+\***********************************************************************************/
+typedef enum
+{
+	PERSEC = 0,
+	PERMIN = 1,
+	PERHOUR = 2,
+	PERDAY = 3,
+	PERWEEK = 4,
+	PERMONTH = 5
+} ALARM_RATE_TypeDef;
+
+typedef enum
+{
+	ALARM1 = 0,
+	ALARM2 = 1
+} DS3231_ALARM_TypeDef;
+
+/***********************************************************************************\
  *                                                                                 *
  *                              DS3231 I2C ADDRESS                                 *
  *                                                                                 *
- ***********************************************************************************/
+\***********************************************************************************/
 #define DS3231_I2C_ADDR			((uint8_t) 0x68)
 
-/***********************************************************************************
+/***********************************************************************************\
  *                                                                                 *
  *                              DS3231 REGISTER ADDRESSES                          *
  *                                                                                 *
- ***********************************************************************************/
+\***********************************************************************************/
 #define DS3231_SECR_PTR			((uint8_t) 0x00)
 #define DS3231_MINR_PTR			((uint8_t) 0x01)
 #define DS3231_HOURR_PTR		((uint8_t) 0x02)
@@ -76,11 +119,11 @@ typedef struct
 #define DS3231_TEMPMSBR_PTR		((uint8_t) 0x11)
 #define DS3231_TEMPLSBR_PTR		((uint8_t) 0x12)	
 
-/***********************************************************************************
+/***********************************************************************************\
  *                                                                                 *
  *                              DS3231 REGISTER BIT DEFS                           *
  *                                                                                 *
- ***********************************************************************************/
+\***********************************************************************************/
 
 /* SECR ---------------------------------------------------------------------------*/
 
@@ -99,6 +142,7 @@ typedef struct
 // Bit 7 is reserved:  must be 0.
 #define DS3231_HOURR_MILTIME		((uint8_t) 0x40)	/*!< Time format is military time */
 #define DS3231_HOURR_PM			((uint8_t) 0x20)	/*!< Current time is PM */
+#define DS3231_HOURR_20HR		((uint8_t) 0x20)	/*!< Current hour is between 20 and 23 */
 // Bit 4 is the ten's digit of the current hour.
 // Bits 3 - 0 are the one's digit of the current hour.
 
@@ -226,20 +270,21 @@ typedef struct
 // Bits 5 - 0 are reserved:  must be 0.
 
 
-/***********************************************************************************
+/***********************************************************************************\
  *                                                                                 *
  *                              RTC FUNCTIONS                                      *
  *                                                                                 *
- ***********************************************************************************/
+\***********************************************************************************/
 
 /**
   * @brief
   *
   *
-  * @param : date 
+  * @param : date  
+  * @param : rtc
   * @retval None
   */
-void RTC_set_date(Date_TypeDef *restrict date);
+void RTC_set_date(Date_TypeDef *restrict date, DS3231_TypeDef *restrict rtc);
 
 /**
   * @brief
@@ -248,7 +293,7 @@ void RTC_set_date(Date_TypeDef *restrict date);
   * @param : time_arr 
   * @retval None
   */
-void RTC_read_date(Date_TypeDef *restrict date);
+void RTC_read_date(Date_TypeDef *restrict d, DS3231_TypeDef *restrict rtc);
 
 /**
   * @brief
@@ -276,6 +321,14 @@ void RTC_read_alarm(Alarm_TypeDef *restrict alarm);
   * @param alrm_rate :
   * @retval None
   */
-void RTC_enable_interrupts(uint8_t arlm_num, uint8_t alrm_rate);
+void RTC_enable_interrupts(uint8_t arlm_num, ALARM_RATE_TypeDef alrm_rate);
+
+/**
+  * @brief
+  * 
+  * @param rtc : 
+  * @retval None
+  */
+void RTC_struct_reset(DS3231_TypeDef *rtc);
 
 #endif
