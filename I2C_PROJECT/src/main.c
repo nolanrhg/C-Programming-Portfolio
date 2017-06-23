@@ -1,13 +1,43 @@
+ /**********************************************************************************\
+  * @file    I2C_PROJECT/src/main.c                                                *
+  * @author  Nolan R. Gagnon                                                       *
+  * @version V1.0                                                                  *
+  * @date    23-June-2017                                                          *
+  * @brief   Digital Clock.                                                        *
+  *                                                                                *
+  **********************************************************************************
+  * @attention                                                                     *
+  *                                                                                *
+  * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. Gagnon  </center></h2>           *
+  *                                                                                *
+ \**********************************************************************************/
+
+/***********************************************************************************\
+ *                                                                                 *
+ *                                  INCLUDES                                       *
+ *                                                                                 *
+\***********************************************************************************/
 #include "../include/i2c.h"
 #include "../include/dma.h"
 #include "../include/ds3231.h"
 #include "../include/lcd.h"
+#include "../include/ht16k33.h"
 #include <stdio.h>
 
+/***********************************************************************************\
+ *                                                                                 *
+ *                                  PRIVATE FUNCTIONS                              *
+ *                                                                                 *
+\***********************************************************************************/ 
 static void sysclk_init(void);
 static void exti_pin_init(void);
 static void button_pin_init(void);
 
+/***********************************************************************************\
+ *                                                                                 *
+ *                                  ENUMS                                          *
+ *                                                                                 *
+\***********************************************************************************/ 
 typedef enum
 {
 	time = 0,
@@ -16,6 +46,11 @@ typedef enum
 	year = 3
 } Display_TypeDef;
 
+/***********************************************************************************\
+ *                                                                                 *
+ *                                  GLOBAL VARS                                    *
+ *                                                                                 *
+\***********************************************************************************/ 
 static volatile uint8_t btn_presses = 0;
 static volatile Display_TypeDef display_mode = time;
 char days[7][4] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};	
@@ -25,9 +60,18 @@ static volatile DS3231_TypeDef rtc;
 static volatile Date_TypeDef d;
 static Alarm_TypeDef alrm;
 
+static volatile char sev_seg_arr[10];
+
+/***********************************************************************************\
+ *                                                                                 *
+ *                                  FUNCTIONS                                      *
+ *                                                                                 *
+\***********************************************************************************/ 
+
 void main(void)
 {
 	char buff[6];
+
 	sysclk_init();	
 	button_pin_init();
 	LCD_Initialization();
@@ -38,7 +82,7 @@ void main(void)
 	dma_i2c_tx_init();
 	
 	d.second = (uint8_t) 0U;
-	d.minute = (uint8_t) 22U;
+	d.minute = (uint8_t) 25U;
 	d.hour = (uint8_t) 20U;
 	d.day = DS3231_DAYR_THUR;
 	d.date = (uint8_t) 22U;
@@ -53,6 +97,9 @@ void main(void)
 	alrm.alrm_num = ALARM1;
 	alrm.rate = PERMIN;
 	
+	DISPLAY_power_on();
+	DISPLAY_set_brightness(HT16K33_DIMSETUP_DUTY13);
+		
 	//RTC_set_date(&d, &rtc);
 	
 	RTC_clear_interrupt_flag(&rtc, ALARM1);
@@ -65,13 +112,23 @@ void main(void)
 	
 	LCD_Clear();
 	
-	if (d.minute < 10)	
-		sprintf(buff, "%d:0%d", d.hour, d.minute);	
-	else 
-		sprintf(buff, "%d:%d", d.hour, d.minute);
+	if (d.minute < 10) {
+		if (d.hour < 10) 
+			sprintf(buff, "0%d:0%d", d.hour, d.minute);	
+		else
+			sprintf(buff, "%d:0%d", d.hour, d.minute);
+	} else {
+		if (d.hour < 10) 
+			sprintf(buff, "0%d:%d", d.hour, d.minute);
+		else
+			sprintf(buff, "%d:%d", d.hour, d.minute);
+	}
 
 	LCD_DisplayString((uint8_t *) buff);
-
+	
+	time_to_7seg(d.hour, d.minute, sev_seg_arr);
+	
+	DISPLAY_write_time(sev_seg_arr, 10);	
 			
 	while(1);
 }
@@ -204,7 +261,7 @@ void EXTI0_IRQHandler(void)
 		sprintf(buff, "%s", *(days + (d.day - 1)));
 		break;
 	case 2:
-		sprintf(buff, "%d %d", *(months + (d.month - 1)), d.date);	
+		sprintf(buff, "%s %d", *(months + (d.month - 1)), d.date);	
 		break;
 	case 3:
 		sprintf(buff, "%d", d.year);
@@ -234,11 +291,21 @@ void EXTI1_IRQHandler(void)
 	RTC_read_date(&d, &rtc);	
 	
 	LCD_Clear();
-	
-	if (d.minute < 10)	
-		sprintf(buff, "%d:0%d", d.hour, d.minute);	
-	else 
-		sprintf(buff, "%d:%d", d.hour, d.minute);
+
+	if (d.minute < 10) {
+		if (d.hour < 10) 
+			sprintf(buff, "0%d:0%d", d.hour, d.minute);	
+		else
+			sprintf(buff, "%d:0%d", d.hour, d.minute);
+	} else {
+		if (d.hour < 10) 
+			sprintf(buff, "0%d:%d", d.hour, d.minute);
+		else
+			sprintf(buff, "%d:%d", d.hour, d.minute);
+	}
 
 	LCD_DisplayString((uint8_t *) buff);
+
+	time_to_7seg(d.hour, d.minute, sev_seg_arr);
+	DISPLAY_write_time(sev_seg_arr, 10);
 }

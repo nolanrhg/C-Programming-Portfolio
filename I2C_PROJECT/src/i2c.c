@@ -1,14 +1,14 @@
  /**********************************************************************************\
   * @file    I2C_PROJECT/src/i2c.c						   *
-  * @author  Enki 								   *
+  * @author  Nolan R. Gagnon 	           					   *
   * @version V1.0								   *
-  * @date    21-June-2017	    				 		   *
+  * @date    23-June-2017	    				 		   *
   * @brief   I2C driver.	 						   *
   *										   *
   **********************************************************************************
   * @attention								 	   *
   *										   *
-  * <h2><center>&copy; COPYRIGHT(c) 2017 Enki </center></h2>	 	  	   *
+  * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. Gagnon </center></h2>	 	   *
   *										   *
  \**********************************************************************************/
 

@@ -1,14 +1,14 @@
  /**********************************************************************************\
   * @file    I2C_PROJECT/include/ds3231.h                                          *
-  * @author  Enki                                                                  *
+  * @author  Nolan R. Gagnon                                                       *
   * @version V1.0                                                                  *
-  * @date    20-June-2017                                                          *
+  * @date    23-June-2017                                                          *
   * @brief   DS3231 Application Interface.                                         *
   *                                                                                *
   **********************************************************************************
   * @attention                                                                     *
   *                                                                                *
-  * <h2><center>&copy; COPYRIGHT(c) 2017 Enki  </center></h2>     	           *
+  * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. Gagnon  </center></h2>           *
   *                                                                                *
  \**********************************************************************************/
 #ifndef DS3231_H
