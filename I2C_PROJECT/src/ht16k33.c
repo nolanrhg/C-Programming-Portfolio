@@ -75,7 +75,7 @@ void DISPLAY_set_blink_freq(uint8_t freq)
 	uint8_t payload[1];
 	uint8_t parameterized_cmd;	
 	
-	parameterized_cmd = HT16K33_DSETUP | freq;	
+	parameterized_cmd = HT16K33_DSETUP | freq | HT16K33_DSETUP_DISPON;
 	payload[0] = parameterized_cmd;	
 	
 	i2c1_transmit(1, HT16K33_I2C_ADDR, payload);		

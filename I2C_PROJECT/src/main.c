@@ -1,6 +1,6 @@
  /**********************************************************************************\
   * @file    I2C_PROJECT/src/main.c                                                *
-  * @author  Nolan R. Gagnon                                                       *
+  * @author  Nolan R. H. Gagnon                                                    *
   * @version V1.0                                                                  *
   * @date    23-June-2017                                                          *
   * @brief   Digital Clock.                                                        *
@@ -8,7 +8,7 @@
   **********************************************************************************
   * @attention                                                                     *
   *                                                                                *
-  * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. Gagnon  </center></h2>           *
+  * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. H. Gagnon  </center></h2>        *
   *                                                                                *
  \**********************************************************************************/
 
@@ -22,11 +22,13 @@
 #include "../include/ds3231.h"
 #include "../include/lcd.h"
 #include "../include/ht16k33.h"
+#include "../include/adc.h"
+#include "../include/delay.h"
 #include <stdio.h>
 
 /***********************************************************************************\
  *                                                                                 *
- *                                  PRIVATE FUNCTIONS                              *
+ *                         PRIVATE FUNCTION PROTOTYPES                             *
  *                                                                                 *
 \***********************************************************************************/ 
 static void sysclk_init(void);
@@ -77,6 +79,10 @@ void main(void)
 	LCD_Initialization();
 	LCD_Clear();
 	i2c1_init();
+
+	systick_init(16000);
+	
+	adc_init();
 	
 	dma_i2c_rx_init();
 	dma_i2c_tx_init();
@@ -129,7 +135,8 @@ void main(void)
 	time_to_7seg(d.hour, d.minute, sev_seg_arr);
 	
 	DISPLAY_write_time(sev_seg_arr, 10);	
-			
+		
+	ADC1->CR |= ADC_CR_ADSTART;		
 	while(1);
 }
 
@@ -197,31 +204,31 @@ void button_pin_init(void)
   */
 static void exti_pin_init(void)
 {
-        // Enable Port D IO Clock       
+        // Enable Port A IO Clock       
         RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
 
-        // Configure PD0 as a digital input pin
-        GPIOA->MODER &= ~GPIO_MODER_MODER1;  // bit field = 0b00
+        // Configure PA2 as a digital input pin
+        GPIOA->MODER &= ~GPIO_MODER_MODER2;  // bit field = 0b00
 
         // Enable the SYSCFG clock
         RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
 
         // Connect EXTI0 to PD0
-        SYSCFG->EXTICR[0] &= ~SYSCFG_EXTICR1_EXTI1;
-        SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI1_PA;
+        SYSCFG->EXTICR[0] &= ~SYSCFG_EXTICR1_EXTI2;
+        SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI2_PA;
 
-        // Unmask interrupt request from line 1
-        EXTI->IMR1 |= EXTI_IMR1_IM1;
+        // Unmask interrupt request from line 2
+        EXTI->IMR1 |= EXTI_IMR1_IM2;
 
-        // Disable rising edge trigger for input line 1
-        EXTI->RTSR1 &= ~EXTI_RTSR1_RT1;
+        // Disable rising edge trigger for input line 2
+        EXTI->RTSR1 &= ~EXTI_RTSR1_RT2;
 
-        // Enable falling edge trigger for input line 1
-        EXTI->FTSR1 |= EXTI_FTSR1_FT1;
+        // Enable falling edge trigger for input line 2 
+        EXTI->FTSR1 |= EXTI_FTSR1_FT2;
 
-        // Register EXTI0 interrupt handler with NVIC
-        NVIC_SetPriority(EXTI1_IRQn, 0x03);
-        NVIC_EnableIRQ(EXTI1_IRQn);
+        // Register EXTI2 interrupt handler with NVIC
+        NVIC_SetPriority(EXTI2_IRQn, 0x03);
+        NVIC_EnableIRQ(EXTI2_IRQn);
 }
 
 /**
@@ -281,11 +288,11 @@ void EXTI0_IRQHandler(void)
   * @param None
   * @retval None
   */
-void EXTI1_IRQHandler(void)
+void EXTI2_IRQHandler(void)
 {
 	char buff[6];
 
-        EXTI->PR1 |= EXTI_PR1_PIF1;
+        EXTI->PR1 |= EXTI_PR1_PIF2;
 	RTC_clear_interrupt_flag(&rtc, ALARM1);
 
 	RTC_read_date(&d, &rtc);	

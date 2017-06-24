@@ -1,6 +1,6 @@
 TARGET = clock
 
-OBJS = main.o i2c.o ds3231.o ht16k33.o dma.o aux.o lcd.o
+OBJS = main.o i2c.o ds3231.o ht16k33.o dma.o aux.o lcd.o adc.o delay.o
 
 INSTALLDIR = /usr/local/stmdev/
 
