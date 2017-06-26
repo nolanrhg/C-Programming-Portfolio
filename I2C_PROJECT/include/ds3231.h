@@ -1,16 +1,16 @@
- /**********************************************************************************\
-  * @file    I2C_PROJECT/include/ds3231.h                                          *
-  * @author  Nolan R. Gagnon                                                       *
-  * @version V1.0                                                                  *
-  * @date    23-June-2017                                                          *
-  * @brief   DS3231 Application Interface.                                         *
-  *                                                                                *
-  **********************************************************************************
-  * @attention                                                                     *
-  *                                                                                *
-  * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. Gagnon  </center></h2>           *
-  *                                                                                *
- \**********************************************************************************/
+/**********************************************************************************\
+ * @file    I2C_PROJECT/include/ds3231.h                                          *
+ * @author  Nolan R. H. Gagnon                                                    *
+ * @version V2.0                                                                  *
+ * @date    26-June-2017                                                          *
+ * @brief   DS3231 Application Interface.                                         *
+ *                                                                                *
+ **********************************************************************************
+ * @attention                                                                     *
+ *                                                                                *
+ * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. H. Gagnon  </center></h2>        *
+ *                                                                                *
+\**********************************************************************************/
 #ifndef DS3231_H
 #define DS3231_H
 
@@ -42,8 +42,6 @@ typedef enum
  *                              DS3231 STRUCTS                                     *
  *                                                                                 *
 \***********************************************************************************/
-
-/* RTC Struct ---------------------------------------------------------------------*/
 typedef struct
 {
 	__IO uint8_t SECR;		/*!< DS3231 Seconds Register */
@@ -67,7 +65,6 @@ typedef struct
 	__IO uint8_t TEMPLSBR;		/*!< DS3231 LSB of Temperature Register */
 } DS3231_TypeDef;
 
-/* Date Struct -------------------------------------------------------------------*/
 typedef struct
 {
 	__IO uint8_t second;
@@ -79,7 +76,6 @@ typedef struct
 	__IO uint16_t year;
 } Date_TypeDef;
 
-/* Alarm Struct ------------------------------------------------------------------*/
 typedef struct
 {
 	uint8_t second;
@@ -91,18 +87,18 @@ typedef struct
 	ALARM_RATE_TypeDef rate;
 } Alarm_TypeDef;
 
-/***********************************************************************************\
- *                                                                                 *
- *                              DS3231 I2C ADDRESS                                 *
- *                                                                                 *
-\***********************************************************************************/
+/**********************************************************************************\
+ *                                                                                *
+ *                              DS3231 I2C ADDRESS                                *
+ *                                                                                *
+\**********************************************************************************/
 #define DS3231_I2C_ADDR			((uint8_t) 0x68)
 
-/***********************************************************************************\
- *                                                                                 *
- *                              DS3231 REGISTER ADDRESSES                          *
- *                                                                                 *
-\***********************************************************************************/
+/**********************************************************************************\
+ *                                                                                *
+ *                              DS3231 REGISTER ADDRESSES                         *
+ *                                                                                *
+\**********************************************************************************/
 #define DS3231_SECR_PTR			((uint8_t) 0x00)
 #define DS3231_MINR_PTR			((uint8_t) 0x01)
 #define DS3231_HOURR_PTR		((uint8_t) 0x02)
@@ -123,25 +119,25 @@ typedef struct
 #define DS3231_TEMPMSBR_PTR		((uint8_t) 0x11)
 #define DS3231_TEMPLSBR_PTR		((uint8_t) 0x12)	
 
-/***********************************************************************************\
- *                                                                                 *
- *                              DS3231 REGISTER BIT DEFS                           *
- *                                                                                 *
-\***********************************************************************************/
+/**********************************************************************************\
+ *                                                                                *
+ *                              DS3231 REGISTER BIT DEFS                          *
+ *                                                                                *
+\**********************************************************************************/
 
-/* SECR ---------------------------------------------------------------------------*/
+/* SECR ***************************************************************************/
 
 // Bit 7 is reserved:  must be 0.
 // Bits 6 - 4 are the ten's digit of the current second.
 // Bits 3 - 0 are the one's digit of the current second.
 
-/* MINR ---------------------------------------------------------------------------*/
+/* MINR ***************************************************************************/
 
 // Bit 7 is reserved:  must be 0.
 // Bits 6 - 4 are the ten's digit of the current minute.
 // Bits 3 - 0 are the one's digit of the current minute.
 
-/* HOURR --------------------------------------------------------------------------*/
+/* HOURR **************************************************************************/
 
 // Bit 7 is reserved:  must be 0.
 #define DS3231_HOURR_NONMILTIME		((uint8_t) 0x40)	/*!< Time format is not military time */
@@ -150,7 +146,7 @@ typedef struct
 // Bit 4 is the ten's digit of the current hour.
 // Bits 3 - 0 are the one's digit of the current hour.
 
-/* DAYR ---------------------------------------------------------------------------*/
+/* DAYR ***************************************************************************/
 
 // Bits 7 - 3 are reserved:  must be 0.
 #define DS3231_DAYR_MON			((uint8_t) 0x01)	/*!< Current day is Monday */
@@ -161,12 +157,12 @@ typedef struct
 #define DS3231_DAYR_SAT			((uint8_t) 0x06)	/*!< Current day is Saturday */
 #define DS3231_DAYR_SUN			((uint8_t) 0x07)	/*!< Current day is Sunday */
 
-/* DATER ---------------------------------------------------------------------------*/
+/* DATER **************************************************************************/
 // Bits 7 - 6 are reserved:  must be 0;
 // Bits 5 - 4 are the ten's digit of the current date.
 // Bits 3 - 0 are the one's digit of the current date.
 
-/* MONTHR --------------------------------------------------------------------------*/
+/* MONTHR *************************************************************************/
 
 // Bit 7 determines century
 // Bits 6 - 5 are reserved:  must be 0.
@@ -183,24 +179,24 @@ typedef struct
 #define DS3231_MONTHR_NOV		((uint8_t) 0x0B)	/*!< Current month is November */
 #define DS3231_MONTHR_DEC		((uint8_t) 0x0C)	/*!< Current month is December */
 
-/* YEARR ----------------------------------------------------------------------------*/
+/* YEARR *************************************************************************/
 
 // Bits 7 - 4 are the ten's digit of the current year.
 // Bits 3 - 0 are the one's digit of the current year.
 
-/* ALRM1SECR ------------------------------------------------------------------------*/
+/* ALRM1SECR *********************************************************************/
 
 #define DS3231_ALRM1SECR_MASK1		((uint8_t) 0x80)
 // Bits 6 - 4 are the ten's digit of the alarm1 second.
 // Bits 3 - 0 are the one's digit of the alarm1 second.
 
-/* ALRM1MINR ------------------------------------------------------------------------*/
+/* ALRM1MINR *********************************************************************/
 
 #define DS3231_ALRM1MINR_MASK2		((uint8_t) 0x80)
 // Bits 6 - 4 are the ten's digit of the alarm1 minute.
 // Bits 3 - 0 are the one's digit of the alarm1 minute.
 
-/* ALRM1HOURR -----------------------------------------------------------------------*/
+/* ALRM1HOURR ********************************************************************/
 
 #define DS3231_ALRM1HOURR_MASK3		((uint8_t) 0x80)
 #define DS3231_ALRM1HOURR_NONMILTIME	((uint8_t) 0x40)
@@ -209,20 +205,20 @@ typedef struct
 // Bit 4 is the ten's digit of the alarm1 hour.
 // Bits 3 - 0 are the one's digit of the alarm1 hour.
 
-/* ALRM1DAYR -------------------------------------------------------------------------*/
+/* ALRM1DAYR *********************************************************************/
 
 #define DS3231_ALRM1DAYR_MASK4		((uint8_t) 0x80)
 #define DS3231_ALRM1DAYR_DAY		((uint8_t) 0x40)
 // Bits 5 - 4 are the ten's digit of the current date.
 // Bits 3 - 0 are either the one's digit of the alarm1 date or the alarm1 day (depends on the DAY bit defined above)
 
-/* ALRM2MINR --------------------------------------------------------------------------*/
+/* ALRM2MINR *********************************************************************/
 
 #define DS3231_ALRM2MINR_MASK2		((uint8_t) 0x80)
 // Bits 6 - 4 are the ten's digit of the alarm2 minute.
 // Bits 3 - 0 are the one's digit of the alarm2 minute.
 
-/* ALRM2HOURR -------------------------------------------------------------------------*/
+/* ALRM2HOURR ********************************************************************/
 
 #define DS3231_ALRM2HOURR_MASK3		((uint8_t) 0x80)
 #define DS3231_ALRM2HOURR_NONMILTIME	((uint8_t) 0x40)
@@ -230,14 +226,14 @@ typedef struct
 // Bit 4 is the ten's digit of the alarm2 hour.
 // Bits 3 - 0 are the one's digit of the alarm2 hour.
 
-/* ALRM2DAYR --------------------------------------------------------------------------*/
+/* ALRM2DAYR *********************************************************************/
 
 #define DS3231_ALRM2DAYR_MASK4		((uint8_t) 0x80)
 #define DS3231_ALRM2DAYR_DAY		((uint8_t) 0x40)
 // Bits 5 - 4 are the ten's digit of the alarm2 date.
 // Bits 3 - 0 are either the one's digit of the alarm2 date or the alarm2 day (depends on DAY bit defined above)
 
-/* CTLR -------------------------------------------------------------------------------*/
+/* CTLR **************************************************************************/
 
 #define DS3231_CTLR_OSCDIS		((uint8_t) 0x80)	/*!< Disables the oscillator */
 #define DS3231_CTLR_SQWEN		((uint8_t) 0x40)	/*!< Enables square wave output */
@@ -250,7 +246,7 @@ typedef struct
 #define DS3231_CTLR_A2IE		((uint8_t) 0x02)	/*!< Allow alarm2 to generate interrupts */
 #define DS3231_CTLR_A1IE		((uint8_t) 0x01)	/*!< Allow alarm1 to generate interrupts */
 
-/* SR ---------------------------------------------------------------------------------*/
+/* SR *****************************************************************************/
 
 // Bit 7 is the oscillator stop flag.
 // Bits 6 - 4 are reserved:  must be 0.
@@ -259,27 +255,27 @@ typedef struct
 #define DS3231_SR_A2F			((uint8_t) 0x02)
 #define DS3231_SR_A1F			((uint8_t) 0x01)
 
-/* AGEOFFR -----------------------------------------------------------------------------*/
+/* AGEOFFR ************************************************************************/
 
 #define DS3231_AGEOFFR_NEG		((uint8_t) 0x80)	/*!< Makes aging offset value negative */
 // Bits 6 - 0 are the aging offset value.
 
-/* TEMPMSBR ----------------------------------------------------------------------------*/
+/* TEMPMSBR ***********************************************************************/
 
 // Bit 7 is the temperature sign bit.
 // Bits 6 - 0 are the MSBits of the RTC temperature.
 
-/* TEMPLSBR ----------------------------------------------------------------------------*/
+/* TEMPLSBR ***********************************************************************/
 
 // Bits 7 - 6 are the LSBits of the RTC temperature.
 // Bits 5 - 0 are reserved:  must be 0.
 
 
-/***********************************************************************************\
- *                                                                                 *
- *                              RTC FUNCTIONS                                      *
- *                                                                                 *
-\***********************************************************************************/
+/**********************************************************************************\
+ *                                                                                *
+ *                              RTC FUNCTIONS                                     *
+ *                                                                                *
+\**********************************************************************************/
 
 /**
   * @brief

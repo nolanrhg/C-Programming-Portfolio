@@ -22,7 +22,6 @@
 #include "../include/ds3231.h"
 #include "../include/lcd.h"
 #include "../include/ht16k33.h"
-#include "../include/adc.h"
 #include "../include/delay.h"
 #include <stdio.h>
 
@@ -37,31 +36,15 @@ static void button_pin_init(void);
 
 /***********************************************************************************\
  *                                                                                 *
- *                                  ENUMS                                          *
- *                                                                                 *
-\***********************************************************************************/ 
-typedef enum
-{
-	time = 0,
-	day = 1,
-	month = 2,
-	year = 3
-} Display_TypeDef;
-
-/***********************************************************************************\
- *                                                                                 *
  *                                  GLOBAL VARS                                    *
  *                                                                                 *
 \***********************************************************************************/ 
 static volatile uint8_t btn_presses = 0;
-static volatile Display_TypeDef display_mode = time;
 char days[7][4] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};	
 char months[12][4] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
-
 static volatile DS3231_TypeDef rtc;
 static volatile Date_TypeDef d;
 static Alarm_TypeDef alrm;
-
 static volatile char sev_seg_arr[10];
 
 /***********************************************************************************\
@@ -69,7 +52,6 @@ static volatile char sev_seg_arr[10];
  *                                  FUNCTIONS                                      *
  *                                                                                 *
 \***********************************************************************************/ 
-
 void main(void)
 {
 	char buff[6];
@@ -81,17 +63,17 @@ void main(void)
 	i2c1_init();
 
 	systick_init(16000);
-	
-	adc_init();
-	
+	adc1_init();
+	systick_deinit();
+
 	dma_i2c_rx_init();
 	dma_i2c_tx_init();
 	
 	d.second = (uint8_t) 0U;
-	d.minute = (uint8_t) 25U;
-	d.hour = (uint8_t) 20U;
-	d.day = DS3231_DAYR_THUR;
-	d.date = (uint8_t) 22U;
+	d.minute = (uint8_t) 34U;
+	d.hour = (uint8_t) 2U;
+	d.day = DS3231_DAYR_MON;
+	d.date = (uint8_t) 26U;
 	d.month = DS3231_MONTHR_JUN;
 	d.year = (uint16_t) 2017U;
 	
@@ -104,7 +86,6 @@ void main(void)
 	alrm.rate = PERMIN;
 	
 	DISPLAY_power_on();
-	DISPLAY_set_brightness(HT16K33_DIMSETUP_DUTY13);
 		
 	//RTC_set_date(&d, &rtc);
 	
@@ -135,9 +116,27 @@ void main(void)
 	time_to_7seg(d.hour, d.minute, sev_seg_arr);
 	
 	DISPLAY_write_time(sev_seg_arr, 10);	
-		
-	ADC1->CR |= ADC_CR_ADSTART;		
+	
+	ADC1->CR |= ADC_CR_ADSTART;	
 	while(1);
+	
+}
+
+static void tip120_ctl_pin_init(void)
+{
+	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
+	GPIOB->MODER &= ~GPIO_MODER_MODER2;
+	GPIOB->MODER |= GPIO_MODER_MODER2_0;
+}
+
+static void tip120_close_switch(void)
+{
+	GPIOB->ODR |= GPIO_ODR_ODR_2;
+}
+
+static void tip120_open_switch(void)
+{
+	GPIOB->ODR &= ~GPIO_ODR_ODR_2;
 }
 
 /**
@@ -192,7 +191,7 @@ void button_pin_init(void)
         EXTI->FTSR1 &= ~EXTI_FTSR1_FT0;
 
         // Register EXTI0 interrupt handler with NVIC
-        NVIC_SetPriority(EXTI0_IRQn, 0x03);
+        NVIC_SetPriority(EXTI0_IRQn, 3);
         NVIC_EnableIRQ(EXTI0_IRQn);
 }
 
@@ -227,7 +226,7 @@ static void exti_pin_init(void)
         EXTI->FTSR1 |= EXTI_FTSR1_FT2;
 
         // Register EXTI2 interrupt handler with NVIC
-        NVIC_SetPriority(EXTI2_IRQn, 0x03);
+        NVIC_SetPriority(EXTI2_IRQn, 3);
         NVIC_EnableIRQ(EXTI2_IRQn);
 }
 
@@ -242,13 +241,13 @@ void EXTI0_IRQHandler(void)
 
         EXTI->PR1 |= EXTI_PR1_PIF0;
 	
-	btn_presses = (btn_presses + 1) % 4;
-	
         // Wait for the button to be released   
         while (GPIOA->IDR & GPIO_IDR_IDR_0);
-	
-	LCD_Clear();
+
+	btn_presses = (btn_presses + 1) % 4;
 		
+	LCD_Clear();
+	
 	switch (btn_presses) {
 	case 0:
 		if (d.minute < 10) {
@@ -262,7 +261,6 @@ void EXTI0_IRQHandler(void)
 			else
 				sprintf(buff, "%d:%d", d.hour, d.minute);
 		}
-
 		break;
 	case 1:	
 		sprintf(buff, "%s", *(days + (d.day - 1)));
@@ -276,8 +274,7 @@ void EXTI0_IRQHandler(void)
 	default:
 		sprintf(buff, "ERROR");
 		break;
-	
-	}	
+	}
 	
         LCD_DisplayString((uint8_t *) buff);
 }

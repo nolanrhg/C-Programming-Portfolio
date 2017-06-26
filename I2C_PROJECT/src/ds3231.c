@@ -1,14 +1,14 @@
 /**********************************************************************************\
  * @file    I2C_PROJECT/src/ds3231.c                                              *
- * @author  Nolan R. Gagnon                                                       *
+ * @author  Nolan R. H. Gagnon                                                    *
  * @version V1.0                                                                  *
- * @date    23-June-2017                                                          *
+ * @date    26-June-2017                                                          *
  * @brief   DS3231 driver.                                                        *
  *                                                                                *
  **********************************************************************************
  * @attention                                                                     *
  *                                                                                *
- * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. Gagnon </center></h2>            *
+ * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. H. Gagnon </center></h2>         *
  *                                                                                *
 \**********************************************************************************/
 
