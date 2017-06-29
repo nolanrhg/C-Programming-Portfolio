@@ -3,7 +3,7 @@
  * @author  Nolan R. H. Gagnon                                                    *
  * @version V1.0                                                                  *
  * @date    28-June-2017                                                          *
- * @brief   ILI9340C Application Interface.                                       *
+ * @brief   ILI9340C Firmware-level Interface.                                    *
  *                                                                                *
  **********************************************************************************
  * @attention                                                                     *

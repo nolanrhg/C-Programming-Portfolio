@@ -1,18 +1,16 @@
-/**
-  **********************************************************************************
-  * @file    SMART_WATCH/src/spi.c                                                 *
-  * @author  Nolan R. Gagnon                                                       *
-  * @version V1.0                                                                  *
-  * @date    15-June-2017                                                          *
-  * @brief   SPI driver.		     	                                   *
-  *                                                                                *
-  **********************************************************************************
-  * @attention									   *
-  *										   *
-  * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. Gagnon </center></h2>		   *
-  *										   *
-  **********************************************************************************
-  */
+/*********************************************************************************\
+ * @file    SMART_WATCH/src/spi.c                                                *
+ * @author  Nolan R. H. Gagnon                                                   *
+ * @version V1.0                                                                 *
+ * @date    26-June-2017                                                         *
+ * @brief   SPI driver.		     	                                         *
+ *                                                                               *
+ *********************************************************************************
+ * @attention									 *
+ *										 *
+ * <h2><center>&copy; COPYRIGHT(c) 2017 Nolan R. H. Gagnon </center></h2>        *
+ *										 *
+\*********************************************************************************/
 
 /* Includes ----------------------------------------------------------------------*/
 #include "../include/spi.h"
@@ -22,7 +20,8 @@ void spi_init(SPI_TypeDef *SPIx)
 {
 	/* Configure pins for controlling SPIx */
 	spi_pins_init(SPIx);	
-	
+
+	/* Clock the SPIx peripheral */	
 	if (SPIx == SPI1) {
 		RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;	
 	} else if (SPIx == SPI2) {
@@ -30,6 +29,31 @@ void spi_init(SPI_TypeDef *SPIx)
 	} else if (SPIx == SPI3) {
 		RCC->APB1ENR1 |= RCC_APB1ENR1_SPI3EN;	
 	}
+	
+	/* Disable the peripheral before configuration */	
+	SPIx->CR1 &= ~SPI_CR1_SPE;	
+	
+	/* Set baud rate */
+	SPIx->CR1 &= ~SPI_CR1_BR;	
+	SPIx->CR1 |= 1U << 3;	// f_baud = 16 MHz / 4 = 4 MHz
+
+	/* Set CPOL, CPHA combination */
+	SPIx->CR1 &= ~SPI_CR1_CPOL;  // Idle state is low voltage
+	SPIx->CR1 &= ~SPI_CR1_CPHA;  // Sample on the rising edge
+
+	/* Use full-duplex communications */
+	SPIx->CR1 &= ~SPI_CR1_RXONLY;
+	SPIx->CR1 &= ~SPI_CR1_BIDIOE;
+	
+	/* Transmit MSB first */	
+	SPIx->CR1 &= ~SPI_CR1_LSBFIRST;	
+
+	/* Use software slave management */		
+	SPIx->CR1 &= ~SPI_CR1_SSI;  // 0 is forced on the slave-select pin
+	SPIx->CR1 |= SPI_CR1_SSM;  // Software slave management enabled
+
+	/* Configure as master */
+	SPIx->CR1 |= SPI_CR1_MSTR;	
 }
 
 /* Private functions -------------------------------------------------------------*/

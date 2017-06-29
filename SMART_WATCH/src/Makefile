@@ -1,6 +1,6 @@
 TARGET = smart_watch
 
-OBJS = main.o spi.o ili9340c.o dma.o
+OBJS = main.o spi.o dma.o tft_lcd.o
 
 INSTALLDIR = /usr/local/stmdev/
 
